@@ -1,0 +1,178 @@
+<html>
+
+<style>
+    html {
+        font-size: 1em;
+    }
+    
+    .row {
+        display: flex;
+        flex-direction: row;
+    }
+    
+    .column {
+        display: flex;
+        flex-direction: column;
+    }
+</style>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Petit quiz</title>
+</head>
+
+<body class="column" onload="document.getElementById('file_import').value=null;">
+
+    <div id="titre">
+        <h1 style="text-align: center;">Petits quizs</h1>
+    </div>
+
+    <div id="nouveau_quiz" class="row">
+
+        <hr />
+
+        <div class="row">
+            <input type="file" id="file_import" onchange="handleFileSelect(event);" value="" />
+            <button onclick="nouveau_quiz()">Nouveau quiz</button>
+        </div>
+
+        <hr />
+
+        <div class="row ">
+            <div class="column">
+                <label>Nombre de questions</label>
+                <input type="number" value=10 id="input_nombre_questions" />
+            </div>
+
+            <div class="column" style="margin-left: 15px;">
+                <label>Repete les questions</label>
+                <input type="checkbox" id="input_repete_questions" checked />
+            </div>
+        </div>
+
+        <hr />
+
+    </div>
+
+    <hr />
+
+    <div id="quiz" style="margin:auto;">
+        <div>
+            <p>score : <span id="score"></span></p>
+        </div>
+        <h1 id="question"></h1>
+        <div>
+            <input type="text" id="input_reponse">
+            <button onclick="verifie_reponse(); ">Valider</button>
+        </div>
+    </div>
+
+    <div id="reponse">
+        <p id="explications"></p>
+        <button onclick="nouvelle_question();">Question suivante</button>
+    </div>
+
+</body>
+
+</html>
+<script>
+    var file_content = null;
+    var questions = [];
+    var questions_faites = [];
+    var compteur_question = 0;
+    var repete_questions = false;
+    var nb_q = 0;
+    var score = 0;
+    var etat = "eteint";
+    var question = []; // 0 = question, 1 = reponse
+
+    function handleFileSelect(e) {
+        var files = e.target.files;
+        if (files.length < 1) {
+            alert('select a file...');
+            return;
+        }
+        var file = files[0];
+        var reader = new FileReader();
+        reader.onload = onFileLoaded;
+        reader.readAsDataURL(file);
+    }
+
+    function onFileLoaded(e) {
+        var match = /^data:(.*);base64,(.*)$/.exec(e.target.result);
+        // var match = e.target.result;
+        if (match == null) {
+            throw 'Could not parse result'; // should not happen
+        }
+        var mimeType = match[1];
+        file_content = atob(match[2]);
+    }
+
+    function nouveau_quiz() {
+        //console.log(file_content);
+        // On parse
+        questions = [];
+        var nb_l = 1;
+        for (ligne of file_content.split("\n")) {
+            var txt = ligne.split("=");
+            if (txt.length == 2) {
+                questions.push([txt[0], txt[1]]);
+            } else {
+                console.error("Erreur de syntaxe à la ligne " + nb_l + " : \n" + ligne);
+            }
+            nb_l++;
+        }
+        //
+        questions_faites = [];
+        compteur_question = 0;
+        score = 0;
+        repete_questions = document.getElementById("input_repete_questions").checked;
+        nb_q = parseInt(document.getElementById("input_nombre_questions").value);
+        if (!repete_questions) {
+            if (nb_q > questions.length) {
+                nb_q = questions.length;
+            }
+        }
+        etat = "lance";
+        //
+        nouvelle_question();
+    }
+
+    function nouvelle_question() {
+        if (!(etat == "reponse" || etat == "lance")) {
+            alert("Vous ne pouvez pas lancer une nouvelle question maintenant");
+            return;
+        }
+        etat = "question";
+        //
+        if (repete_questions) {
+            question = questions[parseInt(Math.random() * questions.length)];
+        } else {
+            question = questions[compteur_question];
+        }
+        //
+        document.getElementById("explications").innerHTML = "";
+        document.getElementById("question").innerHTML = question[0];
+        document.getElementById("score").innerHTML = "" + score + "/" + compteur_question;
+        compteur_question++;
+    }
+
+    function verifie_reponse() {
+        if (etat != "question") {
+            alert("Vous devez être en train de faire une question pour pouvoir y répondre !");
+            return;
+        }
+        etat = "reponse";
+        //
+        var reponse_joueur = document.getElementById("input_reponse").value;
+        if (reponse_joueur == question[1]) {
+            score++;
+            document.getElementById("explications").innerHTML = "Bonne réponse !";
+            document.getElementById("explications").style.color = "green";
+        } else {
+            document.getElementById("explications").innerHTML = "Faux ! La bonne était : " + question[1];
+            document.getElementById("explications").style.color = "red";
+        }
+        document.getElementById("score").innerHTML = "" + score + "/" + compteur_question;
+    }
+</script>
