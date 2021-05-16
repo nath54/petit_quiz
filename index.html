@@ -3,6 +3,9 @@
 <style>
     html {
         font-size: 1em;
+        font-family: 'Roboto', sans-serif;
+        background-color: #212121;
+        color: #E1BEE7;
     }
     
     .row {
@@ -14,20 +17,52 @@
         display: flex;
         flex-direction: column;
     }
+    
+    input,
+    input * {
+        background-color: #263238;
+        color: white;
+        padding: 5px;
+        margin: 5px;
+        font-size: 1em;
+        font-family: 'Roboto', sans-serif;
+        border: none;
+        border-radius: 5px;
+    }
+    
+    button,
+    button * {
+        background-color: #263238;
+        color: #CFD8DC;
+        font-size: 1em;
+        font-family: 'Roboto', sans-serif;
+        border-radius: 10%;
+        border: none;
+        margin: 5px;
+        padding: 5px;
+        transition-duration: 1s;
+    }
+    
+    button:hover {
+        background-color: #455A64;
+        padding: 6px;
+    }
 </style>
 
 <head>
     <meta charset="utf-8" />
     <title>Petit quiz</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 </head>
 
 <body class="column" onload="init();">
 
     <div id="titre">
-        <h1 style="text-align: center;">Petits quizs</h1>
+        <h1 style="text-align: center; font-size: 2.3em;">Petits quizs</h1>
     </div>
 
-    <div id="nouveau_quiz" class="row" style="border-bottom: 1px solid black;">
+    <div id="nouveau_quiz" class="row" style="border-bottom: 1px solid black; padding-bottom: 20px;">
 
         <hr />
 
@@ -54,25 +89,24 @@
 
     </div>
 
-    <hr />
 
-    <div id="quiz" style="margin:auto;">
+    <div id="quiz" style="margin:auto; display:none;">
         <div>
             <p>score : <span id="score"></span></p>
         </div>
         <h1 id="question"></h1>
         <div>
-            <input type="text" id="input_reponse">
+            <input type="text" id="input_reponse" onkeypress="key_press(event);">
             <button onclick="verifie_reponse(); ">Valider</button>
         </div>
     </div>
 
-    <div id="reponse">
+    <div id="reponse" style="margin:auto; display:none;">
         <p id="explications"></p>
         <button onclick="nouvelle_question();">Question suivante</button>
     </div>
 
-    <div id="fini" style="display:none;">
+    <div id="fini" style="display:none; margin:auto;">
         <p>Le quiz est fini !</p>
         <p>Vous avez fait un score de <span id="score_fini"></span></p>
         <button onclick="nouveau_quiz();">Recommencer le quiz</button>
@@ -91,6 +125,78 @@
     var score = 0;
     var etat = "eteint";
     var question = []; // 0 = question, 1 = reponse
+
+
+    function traite_txt(txt) {
+        ntxt = txt.toLowerCase();
+        replacements = {
+            "é": "e",
+            "è": "e",
+            "ê": "e",
+            "ë": "e",
+            "â": "a",
+            "ä": "a",
+            "à": "a",
+            "á": "a",
+            "ç": "c",
+            "ù": "u",
+            "ú": "u",
+            "û": "u",
+            "ü": "u",
+            "î": "i",
+            "ï": "i",
+            "í": "i",
+            "ö": "o",
+            "ô": "o",
+            "ó": "o",
+            "ñ": "n",
+            " ": "",
+            "\t": "",
+            "\r": "",
+            "\n": "",
+            "!": "",
+            ",": "",
+            "?": "",
+            ";": "",
+            ".": "",
+            ":": "",
+            "/": "",
+            "§": "",
+            "%": "",
+            "*": "",
+            "-": "",
+            "_": "",
+            "'": "",
+            '"': "",
+            "(": "",
+            ")": "",
+            "&": "",
+            "#": "",
+            "{": "",
+            "[": "",
+            "|": "",
+            "`": "",
+            "\\": "",
+            "^": "",
+            "@": "",
+            "]": "",
+            "}": "",
+            "=": "",
+            "+": "",
+            "°": "",
+            "€": "",
+            "£": "",
+            "µ": "",
+            "’": ""
+        }
+        for (k of Object.keys(replacements)) {
+            while (ntxt.includes(k)) {
+                ntxt = ntxt.replace(k, replacements[k]);
+            }
+        }
+
+        return ntxt
+    }
 
     function init() {
         document.getElementById('file_import').value = null;
@@ -121,7 +227,10 @@
     }
 
     function nouveau_quiz() {
-        //console.log(file_content);
+        if (file_content == null) {
+            alert("Veuillez ouvrir un fichier !");
+            return;
+        }
         // On parse
         questions = [];
         var nb_l = 1;
@@ -175,6 +284,7 @@
             question = questions[compteur_question];
         }
         //
+        document.getElementById("input_reponse").value = "";
         document.getElementById("explications").innerHTML = "";
         document.getElementById("question").innerHTML = question[0];
         document.getElementById("score").innerHTML = "" + score + "/" + compteur_question;
@@ -193,14 +303,20 @@
         etat = "reponse";
         //
         var reponse_joueur = document.getElementById("input_reponse").value;
-        if (reponse_joueur == question[1]) {
+        if (traite_txt(reponse_joueur) == traite_txt(question[1])) {
             score++;
             document.getElementById("explications").innerHTML = "Bonne réponse !";
             document.getElementById("explications").style.color = "green";
         } else {
-            document.getElementById("explications").innerHTML = "Faux ! La bonne était : " + question[1];
+            document.getElementById("explications").innerHTML = "Faux ! La bonne réponse était : \"" + question[1] + "\"";
             document.getElementById("explications").style.color = "red";
         }
         document.getElementById("score").innerHTML = "" + score + "/" + compteur_question;
+    }
+
+    function key_press(event) {
+        if (event.key == "Enter") {
+            verifie_reponse();
+        }
     }
 </script>
