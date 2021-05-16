@@ -21,13 +21,13 @@
     <title>Petit quiz</title>
 </head>
 
-<body class="column" onload="document.getElementById('file_import').value=null;">
+<body class="column" onload="init();">
 
     <div id="titre">
         <h1 style="text-align: center;">Petits quizs</h1>
     </div>
 
-    <div id="nouveau_quiz" class="row">
+    <div id="nouveau_quiz" class="row" style="border-bottom: 1px solid black;">
 
         <hr />
 
@@ -72,6 +72,12 @@
         <button onclick="nouvelle_question();">Question suivante</button>
     </div>
 
+    <div id="fini" style="display:none;">
+        <p>Le quiz est fini !</p>
+        <p>Vous avez fait un score de <span id="score_fini"></span></p>
+        <button onclick="nouveau_quiz();">Recommencer le quiz</button>
+    </div>
+
 </body>
 
 </html>
@@ -85,6 +91,12 @@
     var score = 0;
     var etat = "eteint";
     var question = []; // 0 = question, 1 = reponse
+
+    function init() {
+        document.getElementById('file_import').value = null;
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("reponse").style.display = "none";
+    }
 
     function handleFileSelect(e) {
         var files = e.target.files;
@@ -143,6 +155,18 @@
             alert("Vous ne pouvez pas lancer une nouvelle question maintenant");
             return;
         }
+        //
+        if (compteur_question >= nb_q) {
+            document.getElementById("fini").style.display = "initial";
+            document.getElementById("reponse").style.display = "none";
+            document.getElementById("score_fini").innerHTML = "" + score + "/" + compteur_question;
+            return;
+        }
+        //
+        document.getElementById("quiz").style.display = "initial";
+        document.getElementById("reponse").style.display = "none";
+        document.getElementById("fini").style.display = "none";
+        //
         etat = "question";
         //
         if (repete_questions) {
@@ -162,6 +186,10 @@
             alert("Vous devez être en train de faire une question pour pouvoir y répondre !");
             return;
         }
+        //
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("reponse").style.display = "initial";
+        //
         etat = "reponse";
         //
         var reponse_joueur = document.getElementById("input_reponse").value;
