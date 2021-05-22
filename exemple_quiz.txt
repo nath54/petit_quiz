@@ -1,2 +1,3 @@
-question1=reponse1
-question2=reponse2
+Où se situe Nancy (région) = Grand-Est
+Pourquoi la vie ? = parce que la vie
+Le coeur a ses raisons que la raison ignore = Blaise Pascal
